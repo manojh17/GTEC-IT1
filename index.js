@@ -7,31 +7,17 @@ import fs from "fs/promises";
 import path from "path";
 import moment from "moment-timezone";
 import multer from "multer";
-import FileStore from 'session-file-store';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
+const port = 3000;
 moment.tz.setDefault("Asia/Kolkata");
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(join(__dirname, "public")));
 app.use(bodyParser.json());
-
-const SessionFileStore = FileStore(session);
-
-const sessionsDir = join(__dirname, 'sessions');
-
-// Ensure the sessions directory exists
-fs.access(sessionsDir).catch(async () => {
-  await fs.mkdir(sessionsDir, { recursive: true });
-});
-
 app.use(session({
-  store: new SessionFileStore({
-    path: sessionsDir,
-    ttl: 14 * 24 * 60 * 60 // 14 days
-  }),
   secret: 'your-secret-key',
   resave: false,
   saveUninitialized: true
@@ -49,11 +35,40 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Ensure the updates directory exists
+// Ensure the updates and logs directories exist
 const updatesDir = path.join(__dirname, 'public', 'updates');
-if (!await fs.access(updatesDir).then(() => false).catch(() => true)) {
+const logsDir = path.join(__dirname, 'public', 'logs');
+if (await fs.access(updatesDir).then(() => false).catch(() => true)) {
   await fs.mkdir(updatesDir, { recursive: true });
 }
+if (await fs.access(logsDir).then(() => false).catch(() => true)) {
+  await fs.mkdir(logsDir, { recursive: true });
+}
+
+// Function to log session data and IP address
+const logSessionData = async (req, user) => {
+  const logFilePath = path.join(logsDir, 'log.json');
+  const logData = {
+    timestamp: new Date().toISOString(),
+    ip: req.ip,
+    sessionID: req.sessionID,
+    userType: user.userType,
+    user: user.user
+  };
+
+  let logs = [];
+  try {
+    const data = await fs.readFile(logFilePath, 'utf8');
+    logs = JSON.parse(data);
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+
+  logs.push(logData);
+  await fs.writeFile(logFilePath, JSON.stringify(logs, null, 2), 'utf8');
+};
 
 // Load and save credentials functions for students and teachers
 const loadCredentials = async (filePath) => {
@@ -277,66 +292,125 @@ app.post('/saveAttendance4', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   const { user, passkey } = req.body;
-
-  try {
-    const validatedUser = await validateUser(user, passkey);
-    if (validatedUser) {
-      req.session.user = validatedUser.user;
-      req.session.userType = validatedUser.userType;
-
-      if (validatedUser.userType === 'student') {
-        res.redirect('/dashboard');
-      } else if (validatedUser.userType === 'teacher') {
-        res.redirect('/createpost');
-      } else {
-        res.status(400).send('Invalid user type');
+  const validatedUser = await validateUser(user, passkey);
+  if (validatedUser) {
+    req.session.user = validatedUser.user;
+    req.session.userType = validatedUser.userType;
+    let redirectPage;
+    if (validatedUser.userType === 'student') {
+      redirectPage = '/dashboard.html';
+    } else if (validatedUser.userType === 'teacher') {
+      switch (validatedUser.user.user) {
+        case 'teacher1':
+          redirectPage = '/attendence-faculty2.html';
+          break;
+        case 'teacher2':
+          redirectPage = '/attendence-faculty3.html';
+          break;
+        case 'teacher3':
+          redirectPage = '/attendence-faculty4.html';
+          break;
+        case 'hodit':
+          redirectPage = '/full2.html';
+          break;
+        default:
+          redirectPage = '/signin.html';
       }
-    } else {
-      res.status(401).send('Invalid credentials');
     }
-  } catch (error) {
-    console.error('Error validating user:', error);
-    res.status(500).send('Internal Server Error');
+    // Log session data and IP address
+    await logSessionData(req, validatedUser);
+
+    res.json({ message: 'Login successful', redirect: redirectPage });
+  } else {
+    res.json({ message: 'Invalid username or password' });
   }
 });
 
-// Route to handle post creation
-app.post('/createpost', upload.single('file'), isAuthenticated, async (req, res) => {
-  const { title, content, date } = req.body;
+// Function to read JSON data
+const readJSONData = async (filePath) => {
+  try {
+    const data = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error(`Error reading file from disk: ${error}`);
+    return null;
+  }
+};
+
+// API endpoint to fetch attendance data
+app.get('/attendance-data', async (req, res) => {
+  const { page, date } = req.query;
+  let filePath = '';
+
+  // Determine which file to read based on the 'page' parameter
+  switch (page) {
+    case 'todayone':
+      filePath = path.join(__dirname, 'public', 'db2.json');
+      break;
+    case 'todaytwo':
+      filePath = path.join(__dirname, 'public', 'db3.json');
+      break;
+    case 'todaythree':
+      filePath = path.join(__dirname, 'public', 'db4.json');
+      break;
+    default:
+      return res.status(400).send('Invalid page parameter');
+  }
+
+  const data = await readJSONData(filePath);
+  if (data) {
+    const attendanceData = data[date] || [];
+    res.json(attendanceData);
+  } else {
+    res.status(500).send('Error reading data');
+  }
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).send('Failed to log out.');
+    }
+    res.redirect('/');
+  });
+});
+
+// Route to save announcements
+app.post('/save-announcement', isAuthenticated, upload.single('image'), async (req, res) => {
+  const { title, text, link } = req.body;
+  const image = req.file ? `/uploads/${req.file.filename}` : '';
+  const username = req.session.user.user; // Get the username from the session
+
+  const newAnnouncement = {
+    id: Date.now().toString(), // Add a unique ID to the announcement
+    title,
+    text,
+    link,
+    image,
+    date: new Date().toISOString(),
+    username // Include the username
+  };
+
+  const filePath = path.join(__dirname, 'public', 'updates', 'update.json');
 
   // Read existing announcements
-  const filePath = path.join(__dirname, 'public', 'updates', 'update.json');
   let announcements = [];
   try {
     const data = await fs.readFile(filePath, 'utf8');
     announcements = JSON.parse(data);
   } catch (error) {
-    console.error('Error reading announcements file:', error);
+    console.error('Error reading file:', error);
   }
 
-  const newAnnouncement = {
-    id: moment().valueOf(), // Use a timestamp as a unique ID
-    title,
-    content,
-    date,
-    deletable: true // All announcements are deletable by default
-  };
-
-  // Add the new announcement to the list
+  // Add the new announcement
   announcements.push(newAnnouncement);
 
   // Save the updated announcements
-  try {
-    await fs.writeFile(filePath, JSON.stringify(announcements, null, 2));
-    res.status(200).send('Announcement created successfully');
-  } catch (error) {
-    console.error('Error writing announcements file:', error);
-    res.status(500).send('Internal Server Error');
-  }
+  await fs.writeFile(filePath, JSON.stringify(announcements, null, 2));
+
+  res.redirect('/posting');
 });
 
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });
