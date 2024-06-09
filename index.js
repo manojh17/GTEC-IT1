@@ -7,6 +7,7 @@ import fs from "fs/promises";
 import path from "path";
 import moment from "moment-timezone";
 import multer from "multer";
+import FileStore from 'session-file-store';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -16,7 +17,22 @@ moment.tz.setDefault("Asia/Kolkata");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(join(__dirname, "public")));
 app.use(bodyParser.json());
+
+const SessionFileStore = FileStore(session);
+
+const logsDir = join(__dirname, 'logs');
+const logsFilePath = join(logsDir, 'logs.json');
+
+// Ensure the logs directory exists
+if (!await fs.access(logsDir).then(() => false).catch(() => true)) {
+  await fs.mkdir(logsDir, { recursive: true });
+}
+
 app.use(session({
+  store: new SessionFileStore({
+    path: join(__dirname, 'sessions'),
+    ttl: 14 * 24 * 60 * 60 // 14 days
+  }),
   secret: 'your-secret-key',
   resave: false,
   saveUninitialized: true
@@ -334,12 +350,48 @@ app.get('/attendance-data', async (req, res) => {
 });
 
 app.get('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).send('Failed to log out.');
-    }
-    res.redirect('/');
-  });
+  // Save the session data to the logs file
+  const sessionData = req.session;
+  const sessionId = req.sessionID;
+  const logEntry = {
+    sessionId: sessionId,
+    sessionData: sessionData,
+    timestamp: new Date().toISOString(),
+  };
+
+  // Read existing logs file
+  let logs = [];
+  fs.readFile(logsFilePath, 'utf8')
+    .then(data => {
+      logs = JSON.parse(data);
+    })
+    .catch(error => {
+      if (error.code !== 'ENOENT') {
+        console.error('Error reading logs file:', error);
+      }
+    })
+    .finally(() => {
+      // Add the log entry
+      logs.push(logEntry);
+
+      // Write the updated logs file
+      fs.writeFile(logsFilePath, JSON.stringify(logs, null, 2))
+        .then(() => {
+          // Destroy the session
+          req.session.destroy((err) => {
+            if (err) {
+              console.error('Error destroying session:', err);
+              res.status(500).send('Failed to log out.');
+            } else {
+              res.redirect('/');
+            }
+          });
+        })
+        .catch(err => {
+          console.error('Error writing logs file:', err);
+          res.status(500).send('Failed to save session data.');
+        });
+    });
 });
 
 // Route to save announcements
@@ -378,3 +430,8 @@ app.post('/save-announcement', isAuthenticated, upload.single('image'), async (r
   res.redirect('/');
 });
 
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
