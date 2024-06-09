@@ -129,7 +129,6 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
 app.get("/attendence", isAuthenticated, (req, res) => {
   let page;
   if (req.session.userType === 'student') {
-    page = 'dashboard.html';
   } else if (req.session.userType === 'teacher') {
     const teacherUser = req.session.user.user;
     switch (teacherUser) {
