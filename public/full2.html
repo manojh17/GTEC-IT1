@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Year Attendance</title>
+    <style>
+        :root {
+            font-size: 20px;
+        }
+
+        *,
+        *:before,
+        *:after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font: 1em/1.618 Inter, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 30px;
+            margin: 0;
+            color: #224;
+            background:
+                url(https://images.pexels.com/photos/7135121/pexels-photo-7135121.jpeg?cs=srgb&dl=pexels-gradienta-7135121.jpg&fm=jpg)
+                center / cover no-repeat fixed;
+        }
+
+        h2, h3 {
+            text-align: center;
+        }
+
+        #calendar, #searchInput {
+            margin: 20px;
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            max-width: 500px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+
+        .sections-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .section {
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .card {
+            max-width: 500px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, .25);
+            border-radius: 20px;
+            background-color: rgba(255, 255, 255, 0.45);
+            box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(15px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        h4 {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .btn-signout {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            color: white;
+            background-color: #1DB954;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            text-decoration: none;
+        }
+
+        .btn-signout:hover {
+            background-color: #17a74a;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-signout:active {
+            background-color: #128239;
+            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+            transform: translateY(2px);
+        }
+
+        .btn-viewlist {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 1em;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-viewlist:hover {
+            background-color: #0056b3;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-viewlist:active {
+            background-color: #003f7f;
+            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+            transform: translateY(2px);
+        }
+        .actions button {
+            background-color: #007bff;
+            border-color: #007bff;
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+        .actions button:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/logout" class="btn-signout">SIGN OUT</a>
+   
+    <h2>Attendance of Final Year</h2>
+    <input type="text" id="searchInput" placeholder="Search for names.."> <input type="date" id="calendar" placeholder="Select a date">
+    
+    <div class="actions">
+    <button onclick="location.href='/createpost'">Make A ANNOUNCEMENT</button>
+        <button onclick= "location.href='/posting'">View Announcements</button></div>
+
+    <div class="sections-container" id="attendanceSection">
+        <!-- Attendance tables will be populated here dynamically -->
+    </div>
+   
+    <script>
+        const sections = ['todayone', 'todaytwo', 'todaythree'];
+        const sectionTitles = ['2nd year', '3rd year', '4th year'];
+
+        document.addEventListener('DOMContentLoaded', () => {
+    const today = new Date(); // Get today's date
+    const utcDate = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())); // Convert to UTC
+    const formattedDate = utcDate.toISOString().slice(0, 10); // Get today's date in YYYY-MM-DD format
+    loadAttendanceData('todayone', '2nd year', formattedDate); // Load default data for today's date
+    loadAttendanceData('todaytwo', '3rd year', formattedDate);
+    loadAttendanceData('todaythree', '4th year', formattedDate);
+});
+
+document.getElementById('calendar').addEventListener('change', function() {
+    const selectedDate = new Date(this.value);
+    const utcSelectedDate = new Date(Date.UTC(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())); // Convert to UTC
+    const formattedDate = utcSelectedDate.toISOString().slice(0, 10); // Format date as 'YYYY-MM-DD'
+    document.getElementById('attendanceSection').innerHTML = ''; // Clear previous data
+    sections.forEach((section, index) => {
+        loadAttendanceData(section, sectionTitles[index], formattedDate);
+    });
+});
+
+
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('tbody tr');
+            
+            tableRows.forEach(row => {
+                const cells = row.getElementsByTagName('td');
+                const rowText = Array.from(cells).map(cell => cell.textContent.toLowerCase()).join(' ');
+                row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        async function loadAttendanceData(page, sectionTitle, date = 'today') {
+            try {
+                const response = await fetch(`/attendance-data?page=${page}&date=${date}`);
+                const data = await response.json();
+
+                const totalStudents = data.length;
+                const present = data.filter(item => item.attendance.toLowerCase() === 'present');
+                const absent = data.filter(item => item.attendance.toLowerCase() === 'absent');
+
+                const attendanceSection = document.getElementById('attendanceSection');
+
+                let sectionDiv = document.createElement('div');
+                sectionDiv.classList.add('section');
+                sectionDiv.innerHTML = `
+                    <div class="card">
+                        <h3>${sectionTitle} - Attendance for ${date}</h3>
+                        <p>Present: ${present.length} / ${totalStudents}</p>
+                        <h4>Absent (${absent.length})</h4>
+                        <button class="btn-viewlist" onclick="toggleAbsentees('${sectionTitle}')">View List</button>
+                        <table id="${sectionTitle}-absent" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${absent.map(item => `
+                                    <tr>
+                                        <td>${item.name}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                attendanceSection.appendChild(sectionDiv);
+            } catch (error) {
+                console.error('Error fetching attendance data:', error);
+            }
+        }
+
+        function toggleAbsentees(sectionTitle) {
+            const table = document.getElementById(`${sectionTitle}-absent`);
+            table.style.display = table.style.display === 'none' ? '' : 'none';
+        }
+    </script>
+</body>
+</html>

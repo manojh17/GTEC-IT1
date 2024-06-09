@@ -1,0 +1,110 @@
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;700&family=Open+Sans:wght@400;700&family=Poppins:wght@400;700&display=swap');
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    background-image: url(bg.jpg);
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+header {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 1rem 2rem;
+}
+
+.nav-link {
+    font-family: 'Poppins', sans-serif;
+    color: #ff0000;
+    transition: color 0.3s;
+}
+
+.nav-link:hover {
+    color: #007bff;
+}
+
+.btn-primary {
+    background: blue;
+    border: none;
+    font-family: 'Jost', sans-serif;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.container-fluid {
+    padding: 2rem;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    transition: all 0.3s;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: scale(1.02);
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+h1.display-5 {
+    font-family: 'Poppins', sans-serif;
+    color: #000000;
+}
+
+.lead {
+    font-family: 'Open Sans', sans-serif;
+    color: #555;
+}
+
+footer {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-top: 2rem;
+    color: white;
+}
+
+.text-body-secondary {
+    color: #888;
+}
+
+/* Additional styles for responsive design */
+@media (max-width: 767px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    header {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .nav {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .col-md-3.text-end {
+        text-align: center;
+        margin-top: 1rem;
+    }
+}

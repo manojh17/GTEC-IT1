@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        /* Importing fonts from Google */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+        /* Reseting */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #ecf0f3;
+        }
+
+        .container {
+            max-width: 800px;
+            min-height: 600px;
+            margin: 80px auto;
+            padding: 40px 30px 30px 30px;
+            background-color: #ecf0f3;
+            border-radius: 15px;
+            box-shadow: 13px 13px 20px #cbced1, -13px -13px 20px #fff;
+        }
+
+        .container h1 {
+            font-weight: 600;
+            font-size: 2rem;
+            letter-spacing: 1.3px;
+            padding-left: 10px;
+            color: #555;
+            text-align: center;
+        }
+
+        th, td {
+            border: 1px solid black;
+            text-align: center;
+            vertical-align: middle;
+            padding: 10px;
+        }
+
+        .container button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #03A9F4;
+            color: #fff;
+            border-radius: 25px;
+            border: none;
+            box-shadow: 3px 3px 3px #b1b1b1, -3px -3px 3px #fff;
+            letter-spacing: 1.3px;
+            cursor: pointer;
+        }
+
+        .container button:hover {
+            background-color: #039BE5;
+        }
+
+        #signoutButton {
+            background-color: #f44336;
+        }
+
+        #signoutButton:hover {
+            background-color: #d32f2f;
+        }
+
+        #yearOfStudyForm, #newsForm, #timetableContainer, #searchBar, #pdfList {
+            display: none;
+        }
+
+        #timetableContainer, #pdfList li {
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        #pdfList {
+            list-style: none;
+            padding: 0;
+        }
+
+        #pdfList li {
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        @media(max-width: 380px) {
+            .container {
+                margin: 30px 20px;
+                padding: 40px 15px 15px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome, <span id="user"></span></h1>
+        <button id="signoutButton" onclick="signOut()">Sign Out</button>
+        <button onclick="showTimetable()">Timetable</button>
+        <button onclick="showPDFs()">PDF</button>
+        <button onclick="location.href='/createpost'">Announcements</button>
+
+
+        <form id="yearOfStudyForm" onsubmit="addStudentInfo(); return false;">
+            <label for="yearOfStudy">Year of Study:</label>
+            <select id="yearOfStudy">
+                <option value="">Select Year</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+            </select>
+            <button type="submit">Submit</button>
+        </form>
+        <p id="displayYearOfStudy"></p>
+        <div id="timetableContainer"></div>
+        <input type="text" id="searchBar" onkeyup="filterPDFs()" placeholder="Search for PDFs...">
+        <ul id="pdfList">
+            <li>Introduction to Engineering.pdf</li>
+            <li>Advanced Mathematics.pdf</li>
+            <li>Physics Lecture Notes.pdf</li>
+            <li>Chemistry Lab Manual.pdf</li>
+            <li>Data Structures and Algorithms.pdf</li>
+        </ul>
+    </div>
+    <script>
+        fetch('/credentials.json')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('user').textContent = credentials.username;
+            })
+            .catch(error => {
+                console.error('Error loading credentials.json:', error);
+            });
+
+        const timetables = {
+            1: `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Monday</th>
+                            <th>Tuesday</th>
+                            <th>Wednesday</th>
+                            <th>Thursday</th>
+                            <th>Friday</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>09:10 - 10:00</td>
+                            <td>EG</td>
+                            <td>MATHS</td>
+                            <td>Physics </td>
+                            <td>Chemistry </td>
+                            <td>LAB</td>
+                        </tr>
+                        <tr>
+                            <td>10:00 - 10:50</td>
+                            <td>LAB</td>
+                            <td>Math</td>
+                            <td>EG</td>
+                            <td>Physics</td>
+                            <td>Chemistry</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `,
+            2: `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Monday</th>
+                            <th>Tuesday</th>
+                            <th>Wednesday</th>
+                            <th>Thursday</th>
+                            <th>Friday</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>09:10 - 10:00</td>
+                            <td>FODS</td>
+                            <td>MATHS</td>
+                            <td>DSA</td>
+                            <td>OOPS</td>
+                            <td>DPCO</td>
+                        </tr>
+                        <tr>
+                            <td>10:00 - 10:50</td>
+                            <td>MATHS</td>
+                            <td>OOSE</td>
+                            <td>DSA</td>
+                            <td>FODS</td>
+                            <td>DPCO</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `,
+            3: `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Monday</th>
+                            <th>Tuesday</th>
+                            <th>Wednesday</th>
+                            <th>Thursday</th>
+                            <th>Friday</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>09:10 - 10:00</td>
+                            <td>DC</td>
+                            <td>TOC</td>
+                            <td>BA</td>
+                            <td>EDA</td>
+                            <td>IOT</td>
+                        </tr>
+                        <tr>
+                            <td>10:00 - 10:50</td>
+                            <td>TOC</td>
+                            <td>BA</td>
+                            <td>IOT</td>
+                            <td>FSWD</td>
+                            <td>DC</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `,
+            4: `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Monday</th>
+                            <th>Tuesday</th>
+                            <th>Wednesday</th>
+                            <th>Thursday</th>
+                            <th>Friday</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>09:10 - 10:00</td>
+                            <td>CLASS</td>
+                            <td>PROJECT</td>
+                            <td>CLASS</td>
+                            <td>PROJECT</td>
+                            <td>CLASS</td>
+                        </tr>
+                        <tr>
+                            <td>10:00 - 10:50</td>
+                            <td>CLASS</td>
+                            <td>CLASS</td>
+                            <td>PROJECT</td>
+                            <td>ETHICS</td>
+                            <td>PROJECT</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `
+        };
+
+        function addStudentInfo() {
+            const yearOfStudy = document.getElementById('yearOfStudy').value;
+
+            if (yearOfStudy) {
+                document.getElementById('displayYearOfStudy').textContent = `Year of Study: ${yearOfStudy}`;
+                displayTimetable(yearOfStudy);
+            } else {
+                alert('Please select a year of study.');
+            }
+        }
+
+        function displayTimetable(year) {
+            const timetableContainer = document.getElementById('timetableContainer');
+            timetableContainer.innerHTML = timetables[year] || '<p>No timetable available for the selected year.</p>';
+            timetableContainer.style.display = 'block';
+        }
+
+        function filterPDFs() {
+            const searchInput = document.getElementById('searchBar').value.toLowerCase();
+            const pdfList = document.getElementById('pdfList');
+            const pdfItems = pdfList.getElementsByTagName('li');
+
+            Array.from(pdfItems).forEach((item) => {
+                const text = item.textContent || item.innerText;
+                if (text.toLowerCase().indexOf(searchInput) > -1) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function signOut() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/';
+        }
+
+        function showTimetable(){
+            document.getElementById('yearOfStudyForm').style.display="block";
+            document.getElementById('timetableContainer').style.display="block";
+        }
+
+        function showPDFs(){
+            document.getElementById('searchBar').style.display="block";
+            document.getElementById('pdfList').style.display="block";
+        }
+    </script>
+</body>
+</html>

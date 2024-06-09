@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcements</title>
+    <style>
+        /* Importing fonts from Google */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+        /* Reseting */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #ecf0f3;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: rgb(43, 116, 201);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ecf0f3;
+            border-radius: 15px;
+            box-shadow: 13px 13px 20px #cbced1, -13px -13px 20px #fff;
+        }
+
+        section {
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+            color: #555;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        label {
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        input, textarea {
+            padding: 0.75rem;
+            border: none;
+            border-radius: 10px;
+            box-shadow: inset 8px 8px 8px #cbced1, inset -8px -8px 8px #fff;
+            font-size: 1rem;
+            color: #666;
+        }
+
+        button {
+            padding: 0.75rem;
+            border: none;
+            border-radius: 25px;
+            background-color: #03A9F4;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 3px 3px 3px #b1b1b1, -3px -3px 3px #fff;
+            letter-spacing: 1.3px;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background-color: #039BE5;
+        }
+
+        footer {
+            background-color: teal;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            font-size: 1rem;
+            box-shadow: 0px -4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .comment-section {
+            margin-top: 2rem;
+            border-top: 1px solid #cbced1;
+            padding-top: 1rem;
+        }
+
+        .comment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .comment-form input {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 10px;
+            box-shadow: inset 8px 8px 8px #cbced1, inset -8px -8px 8px #fff;
+        }
+
+        .comment-form button {
+            align-self: flex-start;
+        }
+
+        button + button {
+            margin-left: 0.5rem;
+        }
+
+        @media (max-width: 380px) {
+            main {
+                margin: 20px;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ANNOUNCEMENTS</h1>
+    </header>
+    <main>
+        <section id="announcements">
+            <h2>Announcements</h2>
+            <ul id="announcement-list"></ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; Announcements</p>
+    </footer>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("new-announcement-form");
+    const announcementList = document.getElementById("announcement-list");
+
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const title = document.getElementById("announcement-title").value;
+        const content = document.getElementById("announcement-content").value;
+
+        if (title && content) {
+            const announcementItem = document.createElement("li");
+            const announcementTitle = document.createElement("h3");
+            const announcementContent = document.createElement("p");
+
+            announcementTitle.textContent = title;
+            announcementContent.textContent = content;
+
+            // Create button section
+            const buttonSection = document.createElement("div");
+            const likeButton = document.createElement("button");
+            likeButton.textContent = "Like";
+            likeButton.addEventListener("click", () => {
+                alert("You liked this announcement!");
+            });
+
+            const commentButton = document.createElement("button");
+            commentButton.textContent = "Comment";
+            commentButton.addEventListener("click", () => {
+                const commentForm = announcementItem.querySelector(".comment-form");
+                commentForm.style.display = commentForm.style.display === "none" ? "block" : "none";
+            });
+
+            buttonSection.appendChild(likeButton);
+            buttonSection.appendChild(commentButton);
+
+            // Create comment section
+            const commentSection = document.createElement("div");
+            commentSection.className = "comment-section";
+            const commentList = document.createElement("ul");
+            const commentForm = document.createElement("form");
+            commentForm.className = "comment-form";
+            commentForm.style.display = "none";
+
+            const commentInput = document.createElement("input");
+            commentInput.type = "text";
+            commentInput.placeholder = "Write a comment...";
+            commentInput.required = true;
+
+            const submitCommentButton = document.createElement("button");
+            submitCommentButton.type = "submit";
+            submitCommentButton.textContent = "Post Comment";
+           
+
+
+            commentForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const commentText = commentInput.value;
+                if (commentText) {
+                    const commentItem = document.createElement("li");
+                    commentItem.textContent = commentText;
+                    commentList.appendChild(commentItem);
+                    commentInput.value = "";
+                }
+            });
+
+            commentForm.appendChild(commentInput);
+            commentForm.appendChild(submitCommentButton);
+            commentSection.appendChild(commentList);
+            commentSection.appendChild(commentForm);
+
+            // Append everything to the announcement item
+            announcementItem.appendChild(announcementTitle);
+            announcementItem.appendChild(announcementContent);
+            announcementItem.appendChild(buttonSection);
+            announcementItem.appendChild(commentSection);
+            announcementList.appendChild(announcementItem);
+
+            form.reset();
+        }
+    });
+});
+    </script>
+</body>
+</html>

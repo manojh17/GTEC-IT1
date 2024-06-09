@@ -1,0 +1,388 @@
+{
+  "2024-06-02": [
+    {
+      "name": "Manoj H",
+      "username": "manojh11",
+      "attendance": "Absent"
+    },
+    {
+      "name": "hihi",
+      "username": "510821205002",
+      "attendance": "Absent"
+    },
+    {
+      "name": "Student B",
+      "username": "510821205003",
+      "attendance": "Absent"
+    },
+    {
+      "name": "Student D",
+      "username": "510821205005",
+      "attendance": "Absent"
+    }
+  ],
+  "2024-06-07": [
+    {
+      "name": "Manoj H",
+      "username": "manojh11",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "hihi",
+      "username": "510821205002",
+      "attendance": "Absent",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student B",
+      "username": "510821205003",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student C",
+      "username": "510821205004",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student D",
+      "username": "510821205005",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student E",
+      "username": "510821205006",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student F",
+      "username": "510821205007",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student G",
+      "username": "510821205008",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student H",
+      "username": "510821205009",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student I",
+      "username": "510821205010",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student J",
+      "username": "510821205011",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student K",
+      "username": "510821205012",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student L",
+      "username": "510821205013",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student M",
+      "username": "510821205014",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student N",
+      "username": "510821205015",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student O",
+      "username": "510821205016",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student P",
+      "username": "510821205017",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student Q",
+      "username": "510821205018",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student R",
+      "username": "510821205019",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student S",
+      "username": "510821205020",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student T",
+      "username": "510821205021",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student U",
+      "username": "510821205022",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student V",
+      "username": "510821205023",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student W",
+      "username": "510821205024",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student X",
+      "username": "510821205025",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student Y",
+      "username": "510821205026",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student Z",
+      "username": "510821205027",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student AA",
+      "username": "510821205028",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student AB",
+      "username": "510821205029",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student AC",
+      "username": "510821205030",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    }
+  ],
+  "2024-06-06": [
+    {
+      "name": "Manoj H",
+      "username": "manojh11",
+      "attendance": "Absent",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "hihi",
+      "username": "510821205002",
+      "attendance": "Absent",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student B",
+      "username": "510821205003",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student C",
+      "username": "510821205004",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student D",
+      "username": "510821205005",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student E",
+      "username": "510821205006",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student F",
+      "username": "510821205007",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student G",
+      "username": "510821205008",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student H",
+      "username": "510821205009",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student I",
+      "username": "510821205010",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student J",
+      "username": "510821205011",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student K",
+      "username": "510821205012",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student L",
+      "username": "510821205013",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student M",
+      "username": "510821205014",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student N",
+      "username": "510821205015",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student O",
+      "username": "510821205016",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student P",
+      "username": "510821205017",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student Q",
+      "username": "510821205018",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student R",
+      "username": "510821205019",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student S",
+      "username": "510821205020",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student T",
+      "username": "510821205021",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student U",
+      "username": "510821205022",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student V",
+      "username": "510821205023",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student W",
+      "username": "510821205024",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student X",
+      "username": "510821205025",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student Y",
+      "username": "510821205026",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student Z",
+      "username": "510821205027",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student AA",
+      "username": "510821205028",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student AB",
+      "username": "510821205029",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    },
+    {
+      "name": "Student AC",
+      "username": "510821205030",
+      "attendance": "Present",
+      "date": "2024-06-07"
+    }
+  ]
+}
