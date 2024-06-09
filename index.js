@@ -10,7 +10,6 @@ import multer from "multer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const port = 3000;
 moment.tz.setDefault("Asia/Kolkata");
 
 // Middleware
@@ -379,6 +378,3 @@ app.post('/save-announcement', isAuthenticated, upload.single('image'), async (r
   res.redirect('/');
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
