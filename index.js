@@ -1,6 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import session from "express-session";
+import fileStore from "session-file-store";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
@@ -13,11 +14,14 @@ const app = express();
 const port = 3000;
 moment.tz.setDefault("Asia/Kolkata");
 
+const FileStore = fileStore(session);
+
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(join(__dirname, "public")));
 app.use(bodyParser.json());
 app.use(session({
+  store: new FileStore({ path: './sessions', retries: 0 }),
   secret: 'your-secret-key',
   resave: false,
   saveUninitialized: true
@@ -290,127 +294,114 @@ app.post('/saveAttendance4', async (req, res) => {
   }
 });
 
+app.post('/saveAbsence2', async (req, res) => {
+  try {
+    const absenceData = req.body;
+    const currentDate = moment().format('YYYY-MM-DD');
+    const filePath = path.join(__dirname, 'public', 'absences2.json');
+
+    let existingData = [];
+    try {
+      const data = await fs.readFile(filePath, 'utf8');
+      existingData = JSON.parse(data);
+    } catch (error) {
+      console.error('Error reading file:', error);
+    }
+
+    const newData = {
+      ...existingData,
+      [currentDate]: absenceData
+    };
+
+    await fs.writeFile(filePath, JSON.stringify(newData, null, 2));
+
+    res.status(200).send('Absence data saved successfully');
+  } catch (error) {
+    console.error('Error saving absence data:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/saveAbsence3', async (req, res) => {
+  try {
+    const absenceData = req.body;
+    const currentDate = moment().format('YYYY-MM-DD');
+    const filePath = path.join(__dirname, 'public', 'absences3.json');
+
+    let existingData = [];
+    try {
+      const data = await fs.readFile(filePath, 'utf8');
+      existingData = JSON.parse(data);
+    } catch (error) {
+      console.error('Error reading file:', error);
+    }
+
+    const newData = {
+      ...existingData,
+      [currentDate]: absenceData
+    };
+
+    await fs.writeFile(filePath, JSON.stringify(newData, null, 2));
+
+    res.status(200).send('Absence data saved successfully');
+  } catch (error) {
+    console.error('Error saving absence data:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/saveAbsence4', async (req, res) => {
+  try {
+    const absenceData = req.body;
+    const currentDate = moment().format('YYYY-MM-DD');
+    const filePath = path.join(__dirname, 'public', 'absences4.json');
+
+    let existingData = [];
+    try {
+      const data = await fs.readFile(filePath, 'utf8');
+      existingData = JSON.parse(data);
+    } catch (error) {
+      console.error('Error reading file:', error);
+    }
+
+    const newData = {
+      ...existingData,
+      [currentDate]: absenceData
+    };
+
+    await fs.writeFile(filePath, JSON.stringify(newData, null, 2));
+
+    res.status(200).send('Absence data saved successfully');
+  } catch (error) {
+    console.error('Error saving absence data:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 app.post('/login', async (req, res) => {
   const { user, passkey } = req.body;
+
   const validatedUser = await validateUser(user, passkey);
   if (validatedUser) {
     req.session.user = validatedUser.user;
     req.session.userType = validatedUser.userType;
-    let redirectPage;
+
+    await logSessionData(req, validatedUser.user);
+
     if (validatedUser.userType === 'student') {
-      redirectPage = '/dashboard.html';
+      res.redirect('/logi');
     } else if (validatedUser.userType === 'teacher') {
-      switch (validatedUser.user.user) {
-        case 'teacher1':
-          redirectPage = '/attendence-faculty2.html';
-          break;
-        case 'teacher2':
-          redirectPage = '/attendence-faculty3.html';
-          break;
-        case 'teacher3':
-          redirectPage = '/attendence-faculty4.html';
-          break;
-        case 'hodit':
-          redirectPage = '/full2.html';
-          break;
-        default:
-          redirectPage = '/signin.html';
-      }
+      res.redirect('/createpost');
     }
-    // Log session data and IP address
-    await logSessionData(req, validatedUser);
-
-    res.json({ message: 'Login successful', redirect: redirectPage });
   } else {
-    res.json({ message: 'Invalid username or password' });
+    res.send('Invalid credentials');
   }
 });
 
-// Function to read JSON data
-const readJSONData = async (filePath) => {
-  try {
-    const data = await fs.readFile(filePath, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error(`Error reading file from disk: ${error}`);
-    return null;
-  }
-};
-
-// API endpoint to fetch attendance data
-app.get('/attendance-data', async (req, res) => {
-  const { page, date } = req.query;
-  let filePath = '';
-
-  // Determine which file to read based on the 'page' parameter
-  switch (page) {
-    case 'todayone':
-      filePath = path.join(__dirname, 'public', 'db2.json');
-      break;
-    case 'todaytwo':
-      filePath = path.join(__dirname, 'public', 'db3.json');
-      break;
-    case 'todaythree':
-      filePath = path.join(__dirname, 'public', 'db4.json');
-      break;
-    default:
-      return res.status(400).send('Invalid page parameter');
-  }
-
-  const data = await readJSONData(filePath);
-  if (data) {
-    const attendanceData = data[date] || [];
-    res.json(attendanceData);
-  } else {
-    res.status(500).send('Error reading data');
-  }
-});
-
-app.get('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).send('Failed to log out.');
-    }
-    res.redirect('/');
-  });
-});
-
-// Route to save announcements
-app.post('/save-announcement', isAuthenticated, upload.single('image'), async (req, res) => {
-  const { title, text, link } = req.body;
-  const image = req.file ? `/uploads/${req.file.filename}` : '';
-  const username = req.session.user.user; // Get the username from the session
-
-  const newAnnouncement = {
-    id: Date.now().toString(), // Add a unique ID to the announcement
-    title,
-    text,
-    link,
-    image,
-    date: new Date().toISOString(),
-    username // Include the username
-  };
-
-  const filePath = path.join(__dirname, 'public', 'updates', 'update.json');
-
-  // Read existing announcements
-  let announcements = [];
-  try {
-    const data = await fs.readFile(filePath, 'utf8');
-    announcements = JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading file:', error);
-  }
-
-  // Add the new announcement
-  announcements.push(newAnnouncement);
-
-  // Save the updated announcements
-  await fs.writeFile(filePath, JSON.stringify(announcements, null, 2));
-
-  res.redirect('/posting');
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  res.json({ file: req.file });
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server running at http://localhost:${port}`);
 });
