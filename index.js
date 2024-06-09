@@ -7,8 +7,6 @@ import fs from "fs/promises";
 import path from "path";
 import moment from "moment-timezone";
 import multer from "multer";
-import Redis from "ioredis";
-import connectRedis from "connect-redis";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -19,17 +17,10 @@ moment.tz.setDefault("Asia/Kolkata");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(join(__dirname, "public")));
 app.use(bodyParser.json());
-
-// Set up Redis for session store
-const RedisStore = connectRedis(session);
-const redisClient = new Redis();
-
 app.use(session({
-  store: new RedisStore({ client: redisClient }),
   secret: 'your-secret-key',
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: 'auto' } // Set secure to true if using HTTPS
+  saveUninitialized: true
 }));
 
 // Set up storage engine for multer
@@ -89,31 +80,6 @@ const isAuthenticated = (req, res, next) => {
   }
 };
 
-// Function to log session data with IP addresses
-const logSessionData = async (req, user) => {
-  const logFilePath = path.join(__dirname, 'public', 'sessionLogs.json');
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-
-  const newLog = {
-    user: user.user,
-    userType: user.userType,
-    loginTime: new Date().toISOString(),
-    ip
-  };
-
-  let logs = [];
-  try {
-    const data = await fs.readFile(logFilePath, 'utf8');
-    logs = JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading log file:', error);
-  }
-
-  logs.push(newLog);
-
-  await fs.writeFile(logFilePath, JSON.stringify(logs, null, 2));
-};
-
 // Routes
 app.get('/login', (req, res) => {
   res.sendFile(join(__dirname, './public/signin.html'));
@@ -127,7 +93,7 @@ app.get('/createpost', isAuthenticated, (req, res) => {
   res.sendFile(join(__dirname, './public/announcements.html'));
 });
 
-app.get('/posting', isAuthenticated, (req, res) => {
+app.get('/posting', (req, res) => {
   res.sendFile(join(__dirname, './public/update.html'));
 });
 
@@ -138,7 +104,7 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
 app.get("/attendence", isAuthenticated, (req, res) => {
   let page;
   if (req.session.userType === 'student') {
-    page = 'dashboard.html';
+    page = 'student.html';
   } else if (req.session.userType === 'teacher') {
     const teacherUser = req.session.user.user;
     switch (teacherUser) {
@@ -152,7 +118,7 @@ app.get("/attendence", isAuthenticated, (req, res) => {
         page = 'attendence-faculty4.html';
         break;
       default:
-        page = 'announcements.html';
+        page = 'attendence-faculty.html';
     }
   }
   res.sendFile(join(__dirname, `./public/${page}`));
@@ -167,16 +133,7 @@ app.get('/api/announcements', async (req, res) => {
   const filePath = path.join(__dirname, 'public', 'updates', 'update.json');
   try {
     const data = await fs.readFile(filePath, 'utf8');
-    let announcements = JSON.parse(data);
-
-    // If the user is a teacher, set a flag indicating that the announcement can be deleted
-    if (req.session.userType === 'teacher') {
-      announcements = announcements.map(announcement => ({
-        ...announcement,
-        deletable: true
-      }));
-    }
-
+    const announcements = JSON.parse(data);
     res.json(announcements);
   } catch (error) {
     console.error('Error reading announcements file:', error);
@@ -184,31 +141,6 @@ app.get('/api/announcements', async (req, res) => {
   }
 });
 
-// Route to delete an announcement
-app.post('/delete-announcement', isAuthenticated, async (req, res) => {
-  if (req.session.userType === 'teacher') {
-    const { announcementId } = req.body;
-    const filePath = path.join(__dirname, 'public', 'updates', 'update.json');
-
-    try {
-      const data = await fs.readFile(filePath, 'utf8');
-      let announcements = JSON.parse(data);
-
-      // Filter out the announcement with the provided ID
-      announcements = announcements.filter(announcement => announcement.id !== announcementId);
-
-      // Write the updated announcements back to the file
-      await fs.writeFile(filePath, JSON.stringify(announcements, null, 2));
-
-      res.status(200).send('Announcement deleted successfully');
-    } catch (error) {
-      console.error('Error deleting announcement:', error);
-      res.status(500).send('Internal Server Error');
-    }
-  } else {
-    res.status(403).send('Unauthorized');
-  }
-});
 
 // Routes to save attendance and absence data
 app.post('/saveAttendance2', async (req, res) => {
@@ -303,7 +235,7 @@ app.post('/login', async (req, res) => {
     req.session.userType = validatedUser.userType;
     let redirectPage;
     if (validatedUser.userType === 'student') {
-      redirectPage = '/dashboard.html';
+      redirectPage = '/index.html';
     } else if (validatedUser.userType === 'teacher') {
       switch (validatedUser.user.user) {
         case 'teacher1':
@@ -319,10 +251,9 @@ app.post('/login', async (req, res) => {
           redirectPage = '/full2.html';
           break;
         default:
-          redirectPage = '/signin.html';
+          redirectPage = '/attendence-faculty.html';
       }
     }
-    await logSessionData(req, validatedUser); // Log session data with IP address
     res.json({ message: 'Login successful', redirect: redirectPage });
   } else {
     res.json({ message: 'Invalid username or password' });
@@ -385,7 +316,6 @@ app.post('/save-announcement', isAuthenticated, upload.single('image'), async (r
   const username = req.session.user.user; // Get the username from the session
 
   const newAnnouncement = {
-    id: Date.now().toString(), // Add a unique ID to the announcement
     title,
     text,
     link,
@@ -411,7 +341,7 @@ app.post('/save-announcement', isAuthenticated, upload.single('image'), async (r
   // Save the updated announcements
   await fs.writeFile(filePath, JSON.stringify(announcements, null, 2));
 
-  res.redirect('/');
+  res.redirect('/posting');
 });
 
 app.listen(port, () => {
