@@ -7,6 +7,8 @@ import fs from "fs/promises";
 import path from "path";
 import moment from "moment-timezone";
 import multer from "multer";
+import Redis from "ioredis";
+import connectRedis from "connect-redis";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -17,10 +19,17 @@ moment.tz.setDefault("Asia/Kolkata");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(join(__dirname, "public")));
 app.use(bodyParser.json());
+
+// Set up Redis for session store
+const RedisStore = connectRedis(session);
+const redisClient = new Redis();
+
 app.use(session({
+  store: new RedisStore({ client: redisClient }),
   secret: 'your-secret-key',
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: true,
+  cookie: { secure: 'auto' } // Set secure to true if using HTTPS
 }));
 
 // Set up storage engine for multer
@@ -129,6 +138,7 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
 app.get("/attendence", isAuthenticated, (req, res) => {
   let page;
   if (req.session.userType === 'student') {
+    page = 'dashboard.html';
   } else if (req.session.userType === 'teacher') {
     const teacherUser = req.session.user.user;
     switch (teacherUser) {
@@ -401,7 +411,7 @@ app.post('/save-announcement', isAuthenticated, upload.single('image'), async (r
   // Save the updated announcements
   await fs.writeFile(filePath, JSON.stringify(announcements, null, 2));
 
-  res.redirect('posting');
+  res.redirect('/');
 });
 
 app.listen(port, () => {
