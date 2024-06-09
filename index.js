@@ -20,17 +20,16 @@ app.use(bodyParser.json());
 
 const SessionFileStore = FileStore(session);
 
-const logsDir = join(__dirname, 'logs');
-const logsFilePath = join(logsDir, 'logs.json');
+const sessionsDir = join(__dirname, 'sessions');
 
-// Ensure the logs directory exists
-if (!await fs.access(logsDir).then(() => false).catch(() => true)) {
-  await fs.mkdir(logsDir, { recursive: true });
-}
+// Ensure the sessions directory exists
+fs.access(sessionsDir).catch(async () => {
+  await fs.mkdir(sessionsDir, { recursive: true });
+});
 
 app.use(session({
   store: new SessionFileStore({
-    path: join(__dirname, 'sessions'),
+    path: sessionsDir,
     ttl: 14 * 24 * 60 * 60 // 14 days
   }),
   secret: 'your-secret-key',
@@ -278,159 +277,65 @@ app.post('/saveAttendance4', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   const { user, passkey } = req.body;
-  const validatedUser = await validateUser(user, passkey);
-  if (validatedUser) {
-    req.session.user = validatedUser.user;
-    req.session.userType = validatedUser.userType;
-    let redirectPage;
-    if (validatedUser.userType === 'student') {
-      redirectPage = '/dashboard.html';
-    } else if (validatedUser.userType === 'teacher') {
-      switch (validatedUser.user.user) {
-        case 'teacher1':
-          redirectPage = '/attendence-faculty2.html';
-          break;
-        case 'teacher2':
-          redirectPage = '/attendence-faculty3.html';
-          break;
-        case 'teacher3':
-          redirectPage = '/attendence-faculty4.html';
-          break;
-        case 'hodit':
-          redirectPage = '/full2.html';
-          break;
-        default:
-          redirectPage = '/signin.html';
-      }
-    }
-    res.json({ message: 'Login successful', redirect: redirectPage });
-  } else {
-    res.json({ message: 'Invalid username or password' });
-  }
-});
 
-// Function to read JSON data
-const readJSONData = async (filePath) => {
   try {
-    const data = await fs.readFile(filePath, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error(`Error reading file from disk: ${error}`);
-    return null;
-  }
-};
+    const validatedUser = await validateUser(user, passkey);
+    if (validatedUser) {
+      req.session.user = validatedUser.user;
+      req.session.userType = validatedUser.userType;
 
-// API endpoint to fetch attendance data
-app.get('/attendance-data', async (req, res) => {
-  const { page, date } = req.query;
-  let filePath = '';
-
-  // Determine which file to read based on the 'page' parameter
-  switch (page) {
-    case 'todayone':
-      filePath = path.join(__dirname, 'public', 'db2.json');
-      break;
-    case 'todaytwo':
-      filePath = path.join(__dirname, 'public', 'db3.json');
-      break;
-    case 'todaythree':
-      filePath = path.join(__dirname, 'public', 'db4.json');
-      break;
-    default:
-      return res.status(400).send('Invalid page parameter');
-  }
-
-  const data = await readJSONData(filePath);
-  if (data) {
-    const attendanceData = data[date] || [];
-    res.json(attendanceData);
-  } else {
-    res.status(500).send('Error reading data');
-  }
-});
-
-app.get('/logout', (req, res) => {
-  // Save the session data to the logs file
-  const sessionData = req.session;
-  const sessionId = req.sessionID;
-  const logEntry = {
-    sessionId: sessionId,
-    sessionData: sessionData,
-    timestamp: new Date().toISOString(),
-  };
-
-  // Read existing logs file
-  let logs = [];
-  fs.readFile(logsFilePath, 'utf8')
-    .then(data => {
-      logs = JSON.parse(data);
-    })
-    .catch(error => {
-      if (error.code !== 'ENOENT') {
-        console.error('Error reading logs file:', error);
+      if (validatedUser.userType === 'student') {
+        res.redirect('/dashboard');
+      } else if (validatedUser.userType === 'teacher') {
+        res.redirect('/createpost');
+      } else {
+        res.status(400).send('Invalid user type');
       }
-    })
-    .finally(() => {
-      // Add the log entry
-      logs.push(logEntry);
-
-      // Write the updated logs file
-      fs.writeFile(logsFilePath, JSON.stringify(logs, null, 2))
-        .then(() => {
-          // Destroy the session
-          req.session.destroy((err) => {
-            if (err) {
-              console.error('Error destroying session:', err);
-              res.status(500).send('Failed to log out.');
-            } else {
-              res.redirect('/');
-            }
-          });
-        })
-        .catch(err => {
-          console.error('Error writing logs file:', err);
-          res.status(500).send('Failed to save session data.');
-        });
-    });
+    } else {
+      res.status(401).send('Invalid credentials');
+    }
+  } catch (error) {
+    console.error('Error validating user:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-// Route to save announcements
-app.post('/save-announcement', isAuthenticated, upload.single('image'), async (req, res) => {
-  const { title, text, link } = req.body;
-  const image = req.file ? `/uploads/${req.file.filename}` : '';
-  const username = req.session.user.user; // Get the username from the session
-
-  const newAnnouncement = {
-    id: Date.now().toString(), // Add a unique ID to the announcement
-    title,
-    text,
-    link,
-    image,
-    date: new Date().toISOString(),
-    username // Include the username
-  };
-
-  const filePath = path.join(__dirname, 'public', 'updates', 'update.json');
+// Route to handle post creation
+app.post('/createpost', upload.single('file'), isAuthenticated, async (req, res) => {
+  const { title, content, date } = req.body;
 
   // Read existing announcements
+  const filePath = path.join(__dirname, 'public', 'updates', 'update.json');
   let announcements = [];
   try {
     const data = await fs.readFile(filePath, 'utf8');
     announcements = JSON.parse(data);
   } catch (error) {
-    console.error('Error reading file:', error);
+    console.error('Error reading announcements file:', error);
   }
 
-  // Add the new announcement
+  const newAnnouncement = {
+    id: moment().valueOf(), // Use a timestamp as a unique ID
+    title,
+    content,
+    date,
+    deletable: true // All announcements are deletable by default
+  };
+
+  // Add the new announcement to the list
   announcements.push(newAnnouncement);
 
   // Save the updated announcements
-  await fs.writeFile(filePath, JSON.stringify(announcements, null, 2));
-
-  res.redirect('/');
+  try {
+    await fs.writeFile(filePath, JSON.stringify(announcements, null, 2));
+    res.status(200).send('Announcement created successfully');
+  } catch (error) {
+    console.error('Error writing announcements file:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-// Start the server
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
